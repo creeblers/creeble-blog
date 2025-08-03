@@ -1,0 +1,182 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PostCard from "../components/PostCard.astro";
+import { getPosts, getPageBySlug } from "../lib/creeble";
+
+export async function getStaticPaths({ paginate }) {
+  // Fetch all posts at build time
+  const allPosts = await getPosts();
+  
+  // Sort posts by creation date (newest first)
+  const sortedPosts = allPosts.sort((a: any, b: any) => {
+    const dateA = new Date(a.created_at || 0);
+    const dateB = new Date(b.created_at || 0);
+    return dateB.getTime() - dateA.getTime();
+  });
+
+  // Paginate returns the paginated collection of paths
+  return paginate(sortedPosts, { 
+    pageSize: 3
+  });
+}
+
+const { page } = Astro.props;
+const home = await getPageBySlug("home");
+---
+
+<Layout
+	title="Creeble Blog"
+	description="A modern blog showcasing posts from Notion via the Creeble API"
+	structuredData={{
+		type: "WebSite",
+		data: {
+			name: "Creeble Blog",
+			description:
+				"A modern blog showcasing posts from Notion via the Creeble API",
+			url: Astro.site?.toString(),
+		},
+	}}
+>
+	<main class="container">
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+			{home && (
+				<section class="sticky top-4">
+					<h1>{home?.properties?.title?.value}</h1>
+					<div class="content" set:html={home?.html_content}></div>
+				</section>
+			)}
+			<section class="posts">
+				{page.data && page.data.length > 0 ? (
+					<>
+						<div class="post-grid grid grid-cols-1 gap-8">
+							{page.data.map((post: any, index: number) => (
+								<div class="post-card-wrapper" data-index={index}>
+									<PostCard post={post} />
+								</div>
+							))}
+						</div>
+						
+						<nav class="pagination" aria-label="Posts pagination">
+							<div class="pagination-info">
+								<p>
+									Page {page.currentPage} of {page.lastPage} 
+									({page.total} total posts)
+								</p>
+							</div>
+							<div class="pagination-nav">
+								{page.url.prev && (
+									<a href={page.url.prev} class="pagination-btn prev">
+										← Previous
+									</a>
+								)}
+								{page.url.next && (
+									<a href={page.url.next} class="pagination-btn next">
+										Next →
+									</a>
+								)}
+							</div>
+						</nav>
+					</>
+				) : (
+					<p>No posts available yet.</p>
+				)}
+			</section>
+		</div>
+	</main>
+</Layout>
+
+<style lang="scss">
+	.sticky {
+		position: sticky;
+		align-self: start;
+
+		@media (max-width: 768px) {
+			position: relative;
+
+			&.top {
+				&-0 {
+					top: inherit;
+				}
+				&-4 {
+					top: inherit;	
+				}
+			}
+		}
+	}
+
+	.top {
+		&-0 {
+			top: 0;
+		}
+		&-4 {
+			top: 2rem;
+		}
+	}
+
+	.gap-16 {
+		gap: 4rem;
+	}
+
+	.grid {
+		display: grid;
+
+		&-cols-1 {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.my {
+		&-8 {
+			margin-top: 2rem;
+			margin-bottom: 2rem;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.md\:grid-cols-2 {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	.post-card-wrapper {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+
+	.pagination {
+		margin-top: 2rem;
+
+		.pagination-nav {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+
+		}
+	}
+</style>
+
+<script>
+	import { gsap } from 'gsap';
+
+	document.addEventListener('DOMContentLoaded', () => {
+		// Animate all cards on page load
+		const allCards = document.querySelectorAll('.post-card-wrapper');
+		
+		// Only animate if there are cards
+		if (allCards && allCards.length > 0) {
+			gsap.fromTo(allCards, 
+				{
+					opacity: 0,
+					y: 20
+				},
+				{
+					opacity: 1,
+					y: 0,
+					duration: 0.6,
+					stagger: 0.1,
+					ease: "power2.out"
+				}
+			);
+		}
+	});
+</script>

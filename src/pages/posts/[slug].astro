@@ -1,0 +1,83 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getPosts } from '../../lib/creeble';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  
+  // Sort posts by creation date (newest first) - same as pagination
+  const sortedPosts = posts
+    .filter((post: any) => post.properties?.slug?.value)
+    .sort((a: any, b: any) => {
+      const dateA = new Date(a.created_at || 0);
+      const dateB = new Date(b.created_at || 0);
+      return dateB.getTime() - dateA.getTime();
+    });
+  
+  const pageSize = 3; // Same as pagination page size
+  
+  return sortedPosts.map((post: any, index: number) => {
+    // Calculate which page this post is on
+    const pageNumber = Math.floor(index / pageSize) + 1;
+    const backUrl = pageNumber === 1 ? '/' : `/${pageNumber}`;
+    
+    return {
+      params: { slug: post.properties.slug.value },
+      props: { 
+        post,
+        backUrl 
+      }
+    };
+  });
+}
+
+const { post, backUrl } = Astro.props;
+const postData = post;
+---
+
+<Layout 
+  title={postData?.title || 'Post Not Found'}
+  description={postData?.properties?.excerpt?.value || 'Read this post on our blog'}
+  image={postData?.properties?.featured_image?.value?.[0]?.url}
+  structuredData={postData ? {
+    type: 'BlogPosting',
+    data: {
+      title: postData.title,
+      description: postData.properties?.excerpt?.value,
+      image: postData.properties?.featured_image?.value?.[0]?.url,
+      publishedDate: postData.properties?.published_date?.value || postData.created_at,
+      modifiedDate: postData.updated_at,
+      url: Astro.url.toString()
+    }
+  } : undefined}
+>
+	<main class="container">
+		{!postData ? (
+			<div class="error">
+				<h1>Post Not Found</h1>
+				<p>The requested post could not be found.</p>
+				<a href={backUrl}>← Back to Home</a>
+			</div>
+		) : (
+			<article>
+				<header>
+					<h1>{postData.properties?.title?.value || 'Untitled'}</h1>
+					{postData.properties?.published_date?.value && (
+						<time>{new Date(postData.properties.published_date.value.start).toLocaleDateString()}</time>
+					)}
+				</header>
+				
+				<div class="content" set:html={postData.html_content || 'No content available.'}>
+				</div>
+				
+				<footer>
+					<a href={backUrl}>← Back to all posts</a>
+				</footer>
+			</article>
+		)}
+	</main>
+</Layout>
+
+<style>
+	
+</style>

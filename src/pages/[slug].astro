@@ -1,0 +1,65 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getPages } from '../lib/creeble';
+
+export async function getStaticPaths() {
+  const pages = await getPages();
+  
+  return pages
+    .filter((page: any) => page.properties?.slug?.value)
+    .map((page: any) => ({
+      params: { slug: page.properties.slug.value },
+      props: { page }
+    }));
+}
+
+const { page } = Astro.props;
+const pageData = page;
+---
+
+<Layout 
+  title={pageData?.title || 'Page Not Found'}
+  description={pageData?.properties?.excerpt?.value || 'Read this page on our blog'}
+  image={pageData?.properties?.featured_image?.value?.[0]?.url}
+  structuredData={pageData ? {
+    type: 'BlogPosting',
+    data: {
+      title: pageData.title,
+      description: pageData.properties?.excerpt?.value,
+      image: pageData.properties?.featured_image?.value?.[0]?.url,
+      publishedDate: pageData.properties?.published_date?.value || pageData.created_at,
+      modifiedDate: pageData.updated_at,
+      url: Astro.url.toString()
+    }
+  } : undefined}
+>
+	<main class="container">
+		{!pageData ? (
+			<div class="error">
+				<h1>Page Not Found</h1>
+				<p>The requested page could not be found.</p>
+				<a href="/">← Back to Home</a>
+			</div>
+		) : (
+			<article>
+				<header>
+					<h1>{pageData.properties?.title?.value || 'Untitled'}</h1>
+					{pageData.properties?.published_date?.value && (
+						<time>{new Date(pageData.properties.published_date.value.start).toLocaleDateString()}</time>
+					)}
+				</header>
+				
+				<div class="content" set:html={pageData.html_content || 'No content available.'}>
+				</div>
+				
+				<footer>
+					<a href="/">← Back to Home</a>
+				</footer>
+			</article>
+		)}
+	</main>
+</Layout>
+
+<style>
+	
+</style>

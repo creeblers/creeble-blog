@@ -1,0 +1,44 @@
+---
+export interface Props {
+  post: any;
+  showDate?: boolean;
+  showExcerpt?: boolean;
+  showReadMore?: boolean;
+}
+
+const {
+  post,
+  showDate = true,
+  showExcerpt = true,
+  showReadMore = true,
+} = Astro.props;
+
+const title = post.properties?.title?.value || post.title || "Untitled";
+const excerpt = post.properties?.excerpt?.value || "No excerpt available";
+const slug = post.properties?.slug?.value;
+const publishedDate = post.properties?.published_date?.value?.start;
+---
+
+<article class="post-card">
+  <h3>{title}</h3>
+
+  {showExcerpt && <p>{excerpt}</p>}
+
+  {
+    showDate && publishedDate && (
+      <time>{new Date(publishedDate).toLocaleDateString()}</time>
+    )
+  }
+
+  {showReadMore && slug && <a href={`/posts/${slug}`}>Read more →</a>}
+
+  <hr/>
+</article>
+
+<style lang="scss">
+  .post-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+</style>

@@ -1,0 +1,67 @@
+---
+export interface Props {
+  type: 'WebSite' | 'BlogPosting' | 'Article';
+  data: any;
+}
+
+const { type, data } = Astro.props;
+
+function generateStructuredData() {
+  const baseData = {
+    "@context": "https://schema.org",
+    "@type": type
+  };
+
+  switch (type) {
+    case 'WebSite':
+      return {
+        ...baseData,
+        name: data.name || 'Creeble Blog',
+        description: data.description || 'A blog powered by Creeble and Astro',
+        url: data.url || Astro.site?.toString(),
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${data.url || Astro.site?.toString()}/search?q={search_term_string}`
+          },
+          "query-input": "required name=search_term_string"
+        }
+      };
+    
+    case 'BlogPosting':
+    case 'Article':
+      return {
+        ...baseData,
+        headline: data.title,
+        description: data.description,
+        image: data.image ? [data.image] : undefined,
+        datePublished: data.publishedDate,
+        dateModified: data.modifiedDate || data.publishedDate,
+        author: {
+          "@type": "Person",
+          name: data.author || "Blog Author"
+        },
+        publisher: {
+          "@type": "Organization",
+          name: "Creeble Blog",
+          logo: {
+            "@type": "ImageObject",
+            url: `${Astro.site}/favicon.svg`
+          }
+        },
+        mainEntityOfPage: {
+          "@type": "WebPage",
+          "@id": data.url
+        }
+      };
+    
+    default:
+      return baseData;
+  }
+}
+
+const structuredData = generateStructuredData();
+---
+
+<script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />
