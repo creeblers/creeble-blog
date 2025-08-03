@@ -20,6 +20,9 @@ importers:
       gsap:
         specifier: ^3.13.0
         version: 3.13.0
+      prismjs:
+        specifier: ^1.30.0
+        version: 1.30.0
       sass:
         specifier: ^1.89.2
         version: 1.89.2
