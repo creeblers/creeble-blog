@@ -77,7 +77,7 @@ const canonicalURL =
 <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 		
 		<!-- Prism.js CSS -->
-		<link href={`${import.meta.env.BASE_URL}prism-atom-dark.css`} rel="stylesheet">
+		<link href={`${import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/'}prism-atom-dark.css`} rel="stylesheet">
 		<!-- Structured Data -->
 		{
 			structuredData && (
