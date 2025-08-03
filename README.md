@@ -186,7 +186,37 @@ curl -X POST \
 
 - **Zapier/Make.com**: Connect Notion webhooks to GitHub API
 - **Custom webhook service**: Build your own trigger endpoint
-- **Scheduled builds**: Add cron schedule to GitHub Actions
+- **Scheduled builds**: Automatic rebuilds every 2 hours (see below)
+
+## ⏰ Scheduled Rebuilds
+
+The blog includes an automatic rebuild system that fetches fresh content from Notion every 2 hours:
+
+### How it works:
+- **GitHub Actions cron job** runs every 2 hours
+- **Rebuilds the entire site** with latest Notion content
+- **Redeploys to GitHub Pages** automatically
+- **No code changes needed** - content updates automatically
+
+### Configuration:
+The scheduled rebuild is configured in `.github/workflows/scheduled-rebuild.yml`:
+
+```yaml
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # Every 2 hours
+```
+
+### Manual trigger:
+You can also trigger a rebuild manually:
+1. Go to **Actions** tab in your GitHub repository
+2. Click **"Scheduled Rebuild"** workflow  
+3. Click **"Run workflow"** button
+
+### Requirements:
+Ensure these repository secrets are set:
+- `PUBLIC_CREEBLE_API_KEY` - Your Creeble API key
+- `PROJECT_ENDPOINT` - Your project endpoint (optional if using default)
 
 ## 📁 Project Structure
 
