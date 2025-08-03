@@ -19,7 +19,7 @@ export async function getStaticPaths() {
   return sortedPosts.map((post: any, index: number) => {
     // Calculate which page this post is on
     const pageNumber = Math.floor(index / pageSize) + 1;
-    const backUrl = pageNumber === 1 ? '/' : `/${pageNumber}`;
+    const backUrl = pageNumber === 1 ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}${pageNumber}/`;
     
     return {
       params: { slug: post.properties.slug.value },
